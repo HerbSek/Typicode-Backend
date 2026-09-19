@@ -17,7 +17,6 @@ import org.eclipse.microprofile.config.ConfigProvider;
 @Asynchronous
 public class EmailUtil{
 
-   
     private String smtpHost;
     private String smtpPort;    
     private String smtpUser;

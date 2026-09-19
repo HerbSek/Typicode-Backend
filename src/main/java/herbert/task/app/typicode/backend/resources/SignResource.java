@@ -4,13 +4,16 @@
  */
 package herbert.task.app.typicode.backend.resources;
 import herbert.task.app.typicode.backend.DTO.EmailDto;
+import herbert.task.app.typicode.backend.DTO.JWTDto;
 import herbert.task.app.typicode.backend.DTO.MessageDTO;
 import herbert.task.app.typicode.backend.DTO.OTPDto;
 import herbert.task.app.typicode.backend.DTO.UserDTO;
+import herbert.task.app.typicode.backend.annotation.Secured;
 import herbert.task.app.typicode.backend.models.OTPModel;
 import herbert.task.app.typicode.backend.models.UserModel;
 import herbert.task.app.typicode.backend.services.PersistenceService;
 import herbert.task.app.typicode.backend.utils.EmailUtil;
+import herbert.task.app.typicode.backend.utils.JWTUtil;
 import herbert.task.app.typicode.backend.utils.OTPGenerator;
 import jakarta.inject.Inject;
 import jakarta.json.Json;
@@ -27,7 +30,7 @@ import java.time.OffsetDateTime;
 
 
 //@Produces()
-@Path("/sign")
+@Path("/user")
 @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
 @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
 public class SignResource {
@@ -38,7 +41,7 @@ public class SignResource {
     
     
     @POST
-    @Path("/user/signin")
+    @Path("/signin")
     public Response sign(@Valid EmailDto email) throws MessagingException{
         EmailUtil emailUtil = new EmailUtil();
         if(!email.getEmail().contains("@")){
@@ -101,11 +104,11 @@ public class SignResource {
             return Response.status(Response.Status.OK).entity(message).build();
        
     }
-    
+   
     
     
     @POST
-    @Path("/user/confirmOTP")
+    @Path("/confirmOTP")
     public Response confirmOTP(@Valid OTPDto info){
      
         //
@@ -130,7 +133,7 @@ public class SignResource {
                 user.setOtp(null);
                 ps.updateUser(user);
                 MessageDTO message = new MessageDTO();
-                message.setMessage("You have exceeded the max number of retries. Try signing in.");
+                message.setMessage("You have exceeded the max number of retries. Type in the correct email and try again! ");
                 return Response.status(Response.Status.NOT_FOUND).entity(message).build(); 
             }
             count = count + 1;
@@ -160,11 +163,25 @@ public class SignResource {
         messageUser.setReference(user.getReferenceId());
         messageUser.setRole(UserModel.UserRole.ENDUSER);
         
+        JWTUtil tokenMessage = new JWTUtil();
+        String token = "Bearer "+ tokenMessage.generateLoginToken(messageUser);
+       
+        JWTDto jwtMessage = new JWTDto();
+        jwtMessage.setMessage("JWT Token for login");
+        jwtMessage.setToken(token);
         
-        return Response.status(Response.Status.OK).entity(messageUser).build();
+        
+        return Response.status(Response.Status.OK).entity(jwtMessage).build();
     }
     
     
+    
+    @Secured
+    @Path("/test-secure")
+    @GET
+    public Response testSecured(){
+        return Response.ok("Secured!!!").build();
+    }
     
     
 }
