@@ -27,8 +27,11 @@ public class UserModel extends BaseModel{
     private String avatar;
     
     
-    @OneToOne(mappedBy="user", fetch=FetchType.EAGER, cascade=CascadeType.ALL, orphanRemoval=true)
+    @OneToOne(mappedBy="user", fetch=FetchType.LAZY, cascade=CascadeType.ALL, orphanRemoval=true)
     private OTPModel otp;
+    
+    @OneToOne(mappedBy="user", fetch=FetchType.LAZY, cascade=CascadeType.ALL, orphanRemoval=true)
+    private RefreshToken tokenModel;
     
     
     @Enumerated(EnumType.STRING)
@@ -93,6 +96,14 @@ public class UserModel extends BaseModel{
 
     public void setUserRole(UserRole userRole) {
         this.userRole = userRole;
+    }
+
+    public RefreshToken getTokenModel() {
+        return tokenModel;
+    }
+
+    public void setTokenModel(RefreshToken tokenModel) {
+        this.tokenModel = tokenModel;
     }
     
     

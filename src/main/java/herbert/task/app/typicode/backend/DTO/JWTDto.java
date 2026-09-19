@@ -11,6 +11,7 @@ package herbert.task.app.typicode.backend.DTO;
 public class JWTDto {
     
     private String token;
+    private String refreshToken;
     private String message;
 
     
@@ -21,6 +22,14 @@ public class JWTDto {
 
     public void setToken(String token) {
         this.token = token;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
     }
 
     public String getMessage() {

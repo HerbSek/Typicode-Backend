@@ -5,6 +5,7 @@
 package herbert.task.app.typicode.backend.services;
 
 import herbert.task.app.typicode.backend.models.OTPModel;
+import herbert.task.app.typicode.backend.models.RefreshToken;
 import herbert.task.app.typicode.backend.models.UserModel;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
@@ -105,5 +106,18 @@ public class PersistenceService {
             em.flush();
         }
     
+        
+        public RefreshToken findRefreshToken(String token){
+            try{
+            RefreshToken myToken = em.createQuery("SELECT O from RefreshToken O WHERE O.tokenHash = :token",RefreshToken.class)
+                     .setParameter("token", token)
+                     .getSingleResult();
+             return myToken;
+            }
+            catch(Exception e){
+                return null;
+            }
+        }
+        
     
 }

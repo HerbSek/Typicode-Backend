@@ -58,6 +58,7 @@ public class JWTUtil {
                   .withClaim("email", user.getEmail())
                   .withClaim("reference", String.valueOf(user.getReference()))
                   .withClaim("avatar", user.getAvatar())
+                  .withClaim("role", String.valueOf(user.getRole()))
                   .withIssuedAt(Date.from(now))
                   .withExpiresAt(Date.from(now.plus(TTL)))
                   .sign(algorithm);

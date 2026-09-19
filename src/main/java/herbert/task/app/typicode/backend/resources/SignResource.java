@@ -10,6 +10,7 @@ import herbert.task.app.typicode.backend.DTO.OTPDto;
 import herbert.task.app.typicode.backend.DTO.UserDTO;
 import herbert.task.app.typicode.backend.annotation.Secured;
 import herbert.task.app.typicode.backend.models.OTPModel;
+import herbert.task.app.typicode.backend.models.RefreshToken;
 import herbert.task.app.typicode.backend.models.UserModel;
 import herbert.task.app.typicode.backend.services.PersistenceService;
 import herbert.task.app.typicode.backend.utils.EmailUtil;
@@ -20,9 +21,16 @@ import jakarta.json.Json;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.util.UUID;
+import org.eclipse.microprofile.config.Config;
+import org.eclipse.microprofile.config.ConfigProvider;
 /**
  *
  * @author HerbertSekpey
@@ -38,6 +46,14 @@ public class SignResource {
     
     @Inject
     PersistenceService ps;
+    
+    private Long TTL;
+    
+    
+    public SignResource(){
+       Config config = ConfigProvider.getConfig();
+       this.TTL = config.getValue("jwt.secret.refresh.ttl", Long.class);
+    }
     
     
     @POST
@@ -165,14 +181,57 @@ public class SignResource {
         
         JWTUtil tokenMessage = new JWTUtil();
         String token = "Bearer "+ tokenMessage.generateLoginToken(messageUser);
+        String refreshToken;
+        
+        if(user.getTokenModel() != null){
+               System.out.println("BEFORE: "+ user.getTokenModel().getTokenHash());
+               user.getTokenModel().setDateUpdated(LocalDateTime.now()); 
+               user.getTokenModel().setExpiresAt(OffsetDateTime.now().plusDays(TTL));
+               user.getTokenModel().setTokenHash(UUID.randomUUID().toString());
+               user.getTokenModel().setRevoked(false);
+               UserModel updatedUser = ps.updateUser(user);
+               user = updatedUser;
+               refreshToken = user.getTokenModel().getTokenHash();
+               System.out.println("AFTER: "+ refreshToken);
+        }
+        
+        if(user.getTokenModel() == null){
+                RefreshToken refresh = new RefreshToken();
+                refresh.setUser(user);
+                user.setTokenModel(refresh);
+                user = ps.updateUser(user);
+        }
        
+        
         JWTDto jwtMessage = new JWTDto();
         jwtMessage.setMessage("JWT Token for login");
         jwtMessage.setToken(token);
+        jwtMessage.setRefreshToken(user.getTokenModel().getTokenHash());
         
         
         return Response.status(Response.Status.OK).entity(jwtMessage).build();
     }
+    
+    
+    @POST
+    @Secured
+    @Path("/logout")
+    public Response logout(@Context ContainerRequestContext context){
+        
+        String userId = context.getProperty("userId").toString();
+         MessageDTO message = new MessageDTO();
+        UserModel user = ps.findUser(userId);
+        if(user == null){
+            message.setMessage("User not found.");
+            return Response.status(Response.Status.BAD_REQUEST).entity(message).build();
+        }
+        user.getTokenModel().setRevoked(true);
+        ps.updateUser(user);
+        message.setMessage("User logged out");
+        message.setStatus("200");
+        return Response.status(Response.Status.OK).entity(message).build();
+    }
+    
     
     
     
@@ -182,6 +241,61 @@ public class SignResource {
     public Response testSecured(){
         return Response.ok("Secured!!!").build();
     }
+
     
+    
+    @Path("/refresh")
+    @POST
+    public Response refresh(JWTDto jwt){
+        // search for refresh token and check if it has expired or it is revoked or it is null then return unauthorized so that user can login in again. 
+        RefreshToken getToken = ps.findRefreshToken(jwt.getRefreshToken());
+        if(getToken == null || getToken.isRevoked() == true || getToken.getExpiresAt().isBefore(OffsetDateTime.now())){
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Token canot be found or it has expired or it has been revoked. Please login!").build();
+        }
+        
+        UserModel user = getToken.getUser();
+            user.getTokenModel().setDateUpdated(LocalDateTime.now()); 
+            user.getTokenModel().setExpiresAt(OffsetDateTime.now().plusDays(TTL));
+            user.getTokenModel().setTokenHash(UUID.randomUUID().toString());
+            user.getTokenModel().setRevoked(false);
+            
+        UserDTO userInfo = new UserDTO();
+        userInfo.setId(user.getId());
+        userInfo.setEmail(user.getEmail());
+        userInfo.setReference(user.getReferenceId());
+        userInfo.setAvatar(user.getAvatar());
+        userInfo.setRole(UserModel.UserRole.ENDUSER);
+        UserModel myUser = ps.updateUser(user);
+        user = myUser;
+        // JWT 
+        JWTUtil jwt1 = new JWTUtil();
+        String newAccessToken = jwt1.generateLoginToken(userInfo);  // problem 
+        String newRefreshToken = user.getTokenModel().getTokenHash();
+
+        JWTDto data = new JWTDto();
+        data.setMessage("Login in after rotation");
+        data.setRefreshToken(newRefreshToken);
+        data.setToken(newAccessToken);
+       
+       return Response.status(Response.Status.OK).entity(data).build();
+        
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    public Long getTTL() {
+        return TTL;
+    }
+
+    public void setTTL(Long TTL) {
+        this.TTL = TTL;
+    }
+
+      
     
 }

@@ -5,6 +5,7 @@
 package herbert.task.app.typicode.backend.filter;
 
 import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import herbert.task.app.typicode.backend.annotation.Secured;
 import herbert.task.app.typicode.backend.utils.JWTUtil;
