@@ -1,0 +1,5 @@
+create-jdbc-connection-pool --datasourceclassname org.postgresql.ds.PGSimpleDataSource --restype javax.sql.DataSource --property serverName=aws-1-eu-central-1.pooler.supabase.com:portNumber=6543:databaseName=${ENV=DB_NAME}:user=${ENV=DB_USER}:password=${ENV=DB_PASS}:prepareThreshold=0:sslmode=require typicodeConnectionPool
+
+create-jdbc-resource --connectionpoolid typicodeConnectionPool jdbc/Typicode
+
+ping-connection-pool typicodeConnectionPool

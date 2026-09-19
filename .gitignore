@@ -1,0 +1,4 @@
+target/
+nbproject/project.properties
+src/main/resources/META-INF/microprofile-config.properties
+.env
