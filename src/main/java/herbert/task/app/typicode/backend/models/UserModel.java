@@ -33,6 +33,8 @@ public class UserModel extends BaseModel{
     @OneToOne(mappedBy="user", fetch=FetchType.LAZY, cascade=CascadeType.ALL, orphanRemoval=true)
     private RefreshToken tokenModel;
     
+    @OneToOne(mappedBy = "user" ,fetch = FetchType.LAZY ,cascade=CascadeType.ALL, orphanRemoval=true)
+    private BlogModel blog;
     
     @Enumerated(EnumType.STRING)
     @Column(name="ROLES")
@@ -104,6 +106,14 @@ public class UserModel extends BaseModel{
 
     public void setTokenModel(RefreshToken tokenModel) {
         this.tokenModel = tokenModel;
+    }
+
+    public BlogModel getBlog() {
+        return blog;
+    }
+
+    public void setBlog(BlogModel blog) {
+        this.blog = blog;
     }
     
     

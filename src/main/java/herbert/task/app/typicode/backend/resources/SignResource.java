@@ -269,7 +269,7 @@ public class SignResource {
         user = myUser;
         // JWT 
         JWTUtil jwt1 = new JWTUtil();
-        String newAccessToken = jwt1.generateLoginToken(userInfo);  // problem 
+        String newAccessToken = jwt1.generateLoginToken(userInfo);   
         String newRefreshToken = user.getTokenModel().getTokenHash();
 
         JWTDto data = new JWTDto();

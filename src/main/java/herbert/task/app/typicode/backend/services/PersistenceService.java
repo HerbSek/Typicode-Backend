@@ -4,6 +4,7 @@
  */
 package herbert.task.app.typicode.backend.services;
 
+import herbert.task.app.typicode.backend.models.BlogModel;
 import herbert.task.app.typicode.backend.models.OTPModel;
 import herbert.task.app.typicode.backend.models.RefreshToken;
 import herbert.task.app.typicode.backend.models.UserModel;
@@ -12,6 +13,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import java.time.OffsetDateTime;
+import java.util.List;
 
 /**
  *
@@ -70,10 +72,6 @@ public class PersistenceService {
         UserModel myUser = em.createQuery("SELECT O FROM UserModel O WHERE O.email = :email",UserModel.class)
                              .setParameter("email", email)
                              .getSingleResult();
-        
-        if(myUser == null){
-            return null;
-        }
         return myUser;
         }
     
@@ -120,4 +118,30 @@ public class PersistenceService {
         }
         
     
+        
+        ////////////////////////////BLOG////////////////////////////////////
+    /// @param blog/
+       
+        
+      public void createBlog(BlogModel blog){
+          em.persist(blog);
+      }
+      
+      public BlogModel findBlog(String id){
+          return em.find(BlogModel.class, id);
+      }  
+        
+      public BlogModel updateBlog(BlogModel updateBlog){
+          return em.merge(updateBlog);
+      }  
+        
+      public List<BlogModel> findBlogsByUserId(String id){
+          List<BlogModel> blogs = em.createQuery("SELECT B from BlogModel B WHERE B.user.id = :id",BlogModel.class)
+                                    .setParameter("id", id)
+                                    .getResultList();
+          return blogs;
+      }
+        
+        
+        
 }
