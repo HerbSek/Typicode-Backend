@@ -113,6 +113,7 @@ public class PersistenceService {
              return myToken;
             }
             catch(Exception e){
+                e.printStackTrace();
                 return null;
             }
         }

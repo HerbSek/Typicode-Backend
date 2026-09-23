@@ -7,6 +7,7 @@ import herbert.task.app.typicode.backend.DTO.EmailDto;
 import herbert.task.app.typicode.backend.DTO.JWTDto;
 import herbert.task.app.typicode.backend.DTO.MessageDTO;
 import herbert.task.app.typicode.backend.DTO.OTPDto;
+import herbert.task.app.typicode.backend.DTO.TimerDto;
 import herbert.task.app.typicode.backend.DTO.UserDTO;
 import herbert.task.app.typicode.backend.annotation.Secured;
 import herbert.task.app.typicode.backend.models.OTPModel;
@@ -282,7 +283,21 @@ public class SignResource {
     }
     
     
-    
+    @Path("/refresh-timer")
+    @POST
+    public Response getRefreshTokenTimer(JWTDto dto){
+      String refreshTokenString = dto.getRefreshToken();
+        System.out.println("RefreshToken: " + refreshTokenString);
+      RefreshToken refreshToken = ps.findRefreshToken(refreshTokenString);
+      System.out.println("From DB: "+ refreshToken.getExpiresAt());
+      
+      if(refreshToken == null){
+          return Response.status(Response.Status.NOT_FOUND).entity("RefreshToken not found").build();
+      }
+      TimerDto timerData = new TimerDto(); 
+      timerData.setTimer(refreshToken.getExpiresAt());
+      return Response.status(Response.Status.OK).entity(timerData).build();
+    }
     
     
     
@@ -297,5 +312,4 @@ public class SignResource {
     }
 
       
-    
 }
