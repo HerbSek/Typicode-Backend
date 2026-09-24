@@ -71,6 +71,7 @@ public class SignResource {
         if(check == null){
             UserModel newUser = new UserModel(); 
             newUser.setEmail(email.getEmail().trim().toLowerCase());
+            newUser.setUserRole(UserModel.UserRole.ENDUSER);
             OTPModel otp = new OTPModel();
             Integer genOTP = OTPGenerator.generate();
             while(ps.OTPExists(genOTP)== true){
@@ -164,7 +165,7 @@ public class SignResource {
         if(user.getOtp().getExpiryTime().isBefore(OffsetDateTime.now())){
             MessageDTO message = new MessageDTO();
             message.setMessage("OTP has Expired. Please retry!");
-            return Response.status(Response.Status.GONE).entity(message).build(); 
+            return Response.status(Response.Status.NOT_FOUND).entity(message).build(); 
         }
         
         user.setOtp(null);
@@ -232,8 +233,6 @@ public class SignResource {
         message.setStatus("200");
         return Response.status(Response.Status.OK).entity(message).build();
     }
-    
-    
     
     
     @Secured

@@ -7,6 +7,7 @@ package herbert.task.app.typicode.backend.models;
 import jakarta.persistence.*;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
+import java.util.UUID;
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
 import java.io.Serializable;
@@ -21,7 +22,7 @@ import java.time.LocalDateTime;
 public abstract class BaseModel implements Serializable{
     
    @Id
-   @GeneratedValue(strategy= GenerationType.UUID)
+   @Column(name = "ID")
    private String id;
    
    @Column(name ="DATE_CREATED")
@@ -34,6 +35,7 @@ public abstract class BaseModel implements Serializable{
    
   @PrePersist
   public void init(){
+      setId(UUID.randomUUID().toString().replace("-", ""));
       setDateCreated(LocalDateTime.now());
       setDateUpdated(LocalDateTime.now());
   }
