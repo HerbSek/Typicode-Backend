@@ -5,6 +5,7 @@
 package herbert.task.app.typicode.backend.models;
 
 import jakarta.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -15,6 +16,12 @@ import java.util.List;
 @Entity
 @Table(name = "BLOGS")
 public class BlogModel extends BaseModel{
+    
+    
+    public BlogModel(){
+        this.blogImages = new ArrayList<>();
+    }
+    
     
     @Column(name = "TITLE")
     private String title;
@@ -34,7 +41,7 @@ public class BlogModel extends BaseModel{
     @OneToMany(mappedBy = "blog", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BlogImagesModel> blogImages;
     
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "USER_ID")
     private UserModel user;
     

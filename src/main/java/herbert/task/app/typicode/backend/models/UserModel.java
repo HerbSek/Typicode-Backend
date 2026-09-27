@@ -4,6 +4,7 @@
  */
 package herbert.task.app.typicode.backend.models;
 import jakarta.persistence.*;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -33,8 +34,8 @@ public class UserModel extends BaseModel{
     @OneToOne(mappedBy="user", fetch=FetchType.LAZY, cascade=CascadeType.ALL, orphanRemoval=true)
     private RefreshToken tokenModel;
     
-    @OneToOne(mappedBy = "user" ,fetch = FetchType.LAZY ,cascade=CascadeType.ALL, orphanRemoval=true)
-    private BlogModel blog;
+    @OneToMany(mappedBy = "user" ,fetch = FetchType.LAZY ,cascade=CascadeType.ALL, orphanRemoval=true)
+    private List<BlogModel> blog;
     
     @Enumerated(EnumType.STRING)
     @Column(name="ROLES")
@@ -108,14 +109,15 @@ public class UserModel extends BaseModel{
         this.tokenModel = tokenModel;
     }
 
-    public BlogModel getBlog() {
+    public List<BlogModel> getBlog() {
         return blog;
     }
 
-    public void setBlog(BlogModel blog) {
+    public void setBlog(List<BlogModel> blog) {
         this.blog = blog;
     }
-    
+
+   
     
     
 }

@@ -10,4 +10,16 @@ package herbert.task.app.typicode.backend.DTO;
  */
 public class BlogImageDTO {
     
+    private String image; 
+
+    
+    
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+    
 }

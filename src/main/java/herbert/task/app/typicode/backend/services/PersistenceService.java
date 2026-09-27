@@ -22,22 +22,22 @@ import java.util.List;
 @ApplicationScoped
 @Transactional
 public class PersistenceService {
-    
-    @PersistenceContext
+
+    @PersistenceContext(unitName = "")
     EntityManager em;
-    
-   
+
+
     public void createUser(UserModel entity){
       em.persist(entity);
     }
-    
+
     public boolean OTPExists(Integer OTP){
         Long otp = em.createQuery("SELECT COUNT(O) FROM OTPModel O WHERE O.password = :OTP", Long.class)
                 .setParameter("OTP", OTP)
                 .getSingleResult();
         return otp > 0;
     }
-    
+
     public boolean OTPAndEmailExistsAndExpired(Integer OTP, String email){
         Long otp = em.createQuery("SELECT COUNT(O) FROM OTPModel O WHERE O.password = :OTP AND O.user.email = :email AND O.expiryTime < :now", Long.class)
                 .setParameter("OTP", OTP)
@@ -46,27 +46,27 @@ public class PersistenceService {
                 .getSingleResult();
         return otp > 0;
     }
-    
+
     public UserModel CheckUserAndOtp(Integer OTP, String email){
         try{
         UserModel myUser = em.createQuery("SELECT O FROM UserModel O WHERE O.email = :email",UserModel.class)
                              .setParameter("email", email)
                              .getSingleResult();
-        
+
         if(myUser == null){
             return null;
-        } 
-        
+        }
+
         return myUser;
         }
-    
+
         catch(Exception e){
           e.printStackTrace();
         return null;
         }
     }
-        
-        
+
+
         public UserModel CheckUser(String email){
         try{
         UserModel myUser = em.createQuery("SELECT O FROM UserModel O WHERE O.email = :email",UserModel.class)
@@ -74,37 +74,37 @@ public class PersistenceService {
                              .getSingleResult();
         return myUser;
         }
-    
+
         catch(Exception e){
           e.printStackTrace();
         return null;
         }
     }
-        
+
         public UserModel updateUser(UserModel user){
          return em.merge(user);
         }
-        
+
         public UserModel findUser(String id){
             return em.find(UserModel.class, id);
         }
-    
+
         public void deleteUser(UserModel user){
             em.remove(user);
         }
-    
-        
+
+
         public OTPModel updateOTP(OTPModel otp){
             OTPModel otp1 = em.merge(otp);
             return otp1;
         }
-        
+
         public void deleteOTP(OTPModel otp){
             em.remove(otp);
             em.flush();
         }
-    
-        
+
+
         public RefreshToken findRefreshToken(String token){
             try{
             RefreshToken myToken = em.createQuery("SELECT O from RefreshToken O WHERE O.tokenHash = :token",RefreshToken.class)
@@ -117,32 +117,98 @@ public class PersistenceService {
                 return null;
             }
         }
-        
-    
-        
+
+
+
         ////////////////////////////BLOG////////////////////////////////////
     /// @param blog/
-       
-        
+
+
       public void createBlog(BlogModel blog){
           em.persist(blog);
       }
-      
+
       public BlogModel findBlog(String id){
           return em.find(BlogModel.class, id);
-      }  
-        
+      }
+
       public BlogModel updateBlog(BlogModel updateBlog){
           return em.merge(updateBlog);
-      }  
-        
+      }
+
       public List<BlogModel> findBlogsByUserId(String id){
           List<BlogModel> blogs = em.createQuery("SELECT B from BlogModel B WHERE B.user.id = :id",BlogModel.class)
                                     .setParameter("id", id)
                                     .getResultList();
           return blogs;
       }
-        
-        
-        
+
+
+      public Boolean findBlogTitle(String title){
+          try{
+          Long titleExists = em.createQuery("SELECT COUNT(T) FROM BlogModel T WHERE T.title = :title",Long.class)
+                  .setParameter("title", title)
+                  .getSingleResult();
+
+          System.out.println(String.valueOf(titleExists));
+          return titleExists != 0;
+          }
+          catch(Exception e){
+              return false;
+          }
+      }
+
+      public Boolean findBlogTitleExcludingId(String title, String id){
+          try{
+          Long titleExists = em.createQuery("SELECT COUNT(T) FROM BlogModel T WHERE T.title = :title AND T.id <> :id",Long.class)
+                  .setParameter("title", title)
+                  .setParameter("id", id)
+                  .getSingleResult();
+          return titleExists != 0;
+          }
+          catch(Exception e){
+              e.printStackTrace();
+              return false;
+          }
+      }
+
+      public List<BlogModel> findAllBlogs(){
+          return em.createQuery("SELECT B from BlogModel B ORDER BY B.dateCreated DESC",BlogModel.class)
+                  .getResultList();
+      }
+
+      public List<BlogModel> findAllBlogsPaged(int offset, int limit){
+          return em.createQuery("SELECT B from BlogModel B ORDER BY B.dateCreated DESC",BlogModel.class)
+                  .setFirstResult(offset)
+                  .setMaxResults(limit)
+                  .getResultList();
+      }
+
+      public Long countBlogs(){
+          try{
+          return em.createQuery("SELECT COUNT(B) FROM BlogModel B",Long.class)
+                  .getSingleResult();
+          }
+          catch(Exception e){
+              return 0L;
+          }
+      }
+
+      public List<BlogModel> findBlogsByType(BlogModel.BlogType type){
+          return em.createQuery("SELECT B from BlogModel B WHERE B.blogtype = :type ORDER BY B.dateCreated DESC",BlogModel.class)
+                  .setParameter("type", type)
+                  .getResultList();
+      }
+
+      public List<BlogModel> searchBlogs(String keyword){
+          return em.createQuery("SELECT B from BlogModel B WHERE LOWER(B.title) LIKE :kw OR LOWER(B.description) LIKE :kw ORDER BY B.dateCreated DESC",BlogModel.class)
+                  .setParameter("kw", "%" + keyword.toLowerCase() + "%")                                                                                                                                                                                                                                                                                                                                                                                                        
+                  .getResultList();
+      }
+
+      public void deleteBlog(BlogModel blog){
+          BlogModel managed = em.contains(blog) ? blog : em.merge(blog);
+          em.remove(managed);
+      }
+
 }

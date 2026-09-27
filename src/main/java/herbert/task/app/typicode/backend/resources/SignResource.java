@@ -288,16 +288,63 @@ public class SignResource {
       String refreshTokenString = dto.getRefreshToken();
         System.out.println("RefreshToken: " + refreshTokenString);
       RefreshToken refreshToken = ps.findRefreshToken(refreshTokenString);
-      System.out.println("From DB: "+ refreshToken.getExpiresAt());
       
       if(refreshToken == null){
           return Response.status(Response.Status.NOT_FOUND).entity("RefreshToken not found").build();
       }
+      System.out.println("From DB: "+ refreshToken.getExpiresAt());
       TimerDto timerData = new TimerDto(); 
       timerData.setTimer(refreshToken.getExpiresAt());
       return Response.status(Response.Status.OK).entity(timerData).build();
     }
-    
+
+
+    @Secured
+    @GET
+    @Path("/me")
+    public Response getProfile(@Context ContainerRequestContext context){
+        String userId = context.getProperty("userId").toString();
+        UserModel user = ps.findUser(userId);
+        if(user == null){
+            MessageDTO message = new MessageDTO();
+            message.setMessage("User not found.");
+            return Response.status(Response.Status.NOT_FOUND).entity(message).build();
+        }
+        UserDTO data = new UserDTO();
+        data.setId(user.getId());
+        data.setReference(user.getReferenceId());
+        data.setEmail(user.getEmail());
+        data.setEmailVerified(user.isEmailVerified());
+        data.setRole(user.getUserRole());
+        data.setAvatar(user.getAvatar());
+        return Response.status(Response.Status.OK).entity(data).build();
+    }
+
+
+    @Secured
+    @PUT
+    @Path("/profile")
+    public Response updateProfile(@Context ContainerRequestContext context, UserDTO info){
+        String userId = context.getProperty("userId").toString();
+        UserModel user = ps.findUser(userId);
+        if(user == null){
+            MessageDTO message = new MessageDTO();
+            message.setMessage("User not found.");
+            return Response.status(Response.Status.NOT_FOUND).entity(message).build();
+        }
+        if(info.getAvatar() != null){
+            user.setAvatar(info.getAvatar());
+        }
+        user = ps.updateUser(user);
+        UserDTO data = new UserDTO();
+        data.setId(user.getId());
+        data.setReference(user.getReferenceId());
+        data.setEmail(user.getEmail());
+        data.setEmailVerified(user.isEmailVerified());
+        data.setRole(user.getUserRole());
+        data.setAvatar(user.getAvatar());
+        return Response.status(Response.Status.OK).entity(data).build();
+    }
     
     
     
